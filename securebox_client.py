@@ -1,7 +1,3 @@
-import python *
+import argparse
 
-
-
-applicant = input(">>>")
-time = input("Enter the appointment time: ")
-print(interviewer, "will interview", applicant, "at", time)
+parser = argparse.ArgumentParser(description='Interactive safe file-transfer server')

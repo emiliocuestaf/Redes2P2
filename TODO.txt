@@ -1,2 +1,2 @@
-* Cifrar con clave la private key??
 * VERIFY (digest y tal) en AES??
+* ERRORES HTTP

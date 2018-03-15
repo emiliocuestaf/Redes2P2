@@ -1,5 +1,6 @@
 import python *
 import requests
+import securebox_files
 from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
 from Crypto.Random import get_random_bytes
@@ -7,6 +8,7 @@ from Crypto.Cipher import AES, PKCS1_OAEP
 
 IVLEN = 16
 AESCLEN = 32
+SLEN = 32
 
 # Funciones para encriptar
 
@@ -34,17 +36,17 @@ def encriptar_AES(mensaje, clave):
 
 # coge la clave del AES del anadir firma y la cifra con RSA con la clave publica del receptor
 
-def crear_sobre(clave, ID_receptor):
+def crear_sobre(clave, ID_receptor, token):
 	
 	# Creamos la solicitud de la clave publica al servidor 
 
-	url = 'https://vega.ii.uam.es:8080/api/users/getPublicKey'
-	args = {'userID': ID_receptor}
-	r = requests.post(url, json=args)
-	
-	# r.text contiene la respuesta del servidor (la clave publica)
+	clave_publica_aux = buscar_clave_publica(ID_receptor, token)
 
-	clave_publica = RSA.import_key(r.text)
+	if clave==ERROR:
+
+		return ERROR
+
+	clave_publica = RSA.import_key(clave_publica_aux)
 
 	# Encriptamos la clave del AES
 
@@ -54,7 +56,7 @@ def crear_sobre(clave, ID_receptor):
 
 # Se encarga de todo el proceso de cifrar un mensaje
 
-def encriptar_all(mensaje, ID_receptor):
+def encriptar_all(mensaje, ID_receptor, token):
 
 	# Firmamos el mensaje
 
@@ -67,7 +69,7 @@ def encriptar_all(mensaje, ID_receptor):
 
 	# Ciframos la clave para crear el sobre
 
-	sobre = crear_sobre(clave, ID_receptor)
+	sobre = crear_sobre(clave, ID_receptor, token)
 
 	return sobre + c_mensaje
 
@@ -95,17 +97,17 @@ def desencriptar_AES(clave, iv, c_mensaje):
 
 # Devuelve el hash, gracias a RSA con la clave publica del emisor
 
-def desencriptar_firma(firma, ID_emisor):
+def desencriptar_firma(firma, ID_emisor, token):
 
 	# Creamos la solicitud de la clave publica al servidor 
 
-	url = 'https://vega.ii.uam.es:8080/api/users/getPublicKey'
-	args = {'userID': ID_emisor}
-	r = requests.post(url, json=args)
-	
-	# r.text contiene la respuesta del servidor (la clave publica)
+	clave_publica_aux = buscar_clave_publica(ID_receptor, token)
 
-	clave_publica = RSA.import_key(r.text)
+	if clave==ERROR:
+
+		return ERROR
+
+	clave_publica = RSA.import_key(clave_publica_aux)
 
 	cifrador = PKCS1_OAEP.new(clave_publica)
 
@@ -128,22 +130,25 @@ def firma_valida(firma_descifrada, mensaje):
 
 # Funcion que se encarga de todo el proceso de desencriptacion
 
-def desencriptar_all(mensaje, ID_emisor):
+def desencriptar_all(mensaje, ID_emisor, token):
 
 	# Separamos el mensaje cifrado por partes (primero va el sobre, luego iv y luego la firma y el mensaje cifrados)
+
 	sobre = mensaje[0:AESCLEN]
 
 	aux = AESCLEN+16
+
 	iv = mensaje[AESCLEN:aux]
 
-	aux2 = 100
-	firma = mensaje[aux: aux2] # CUANTO OCUPA LA FIRMA????
+	aux2 = aux + SLEN
+
+	firma = mensaje[aux: aux2]
 
 	c_mensaje = mensaje[aux2:]
 
 	clave = abrir_sobre(sobre)
 	d_mensaje = desencriptar_AES(clave, iv, c_mensaje)
-	d_firma = desencriptar_firma(firma, ID_emisor)
+	d_firma = desencriptar_firma(firma, ID_emisor, token)
 
 	if firma_valida(d_firma, d_mensaje):
 		return d_mensaje

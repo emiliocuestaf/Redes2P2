@@ -1,4 +1,5 @@
 from Crypto.PublicKey import RSA
+import requests
 
 # almacena un usuario, genera las claves y guarda su clave publica en el servidor
 # y la privada de forma local.

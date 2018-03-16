@@ -1,19 +1,19 @@
-import python *
-import requests
 import securebox_files
 from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
 from Crypto.Random import get_random_bytes
 from Crypto.Cipher import AES, PKCS1_OAEP
 
-# Funcion que sube un fichero, devuelve el id y tamaño del fichero
+#Funcion que sube un fichero, devuelve el id y tamanio del fichero
 
 def subir_fichero(fichero_cifrado, token):
-
+	pass
 #hay que cifrarlo y enviarlo o viene cifrado???
 
 
 
+def cifrar_y_subir_fichero(fichero, token):
+	pass
 
 # Funcion que descarga un fichero del sistema, devolviendolo en binario
 

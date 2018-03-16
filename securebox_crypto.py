@@ -1,6 +1,5 @@
-import python *
-import requests
 import securebox_files
+import securebox_users
 from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
 from Crypto.Random import get_random_bytes
@@ -153,5 +152,5 @@ def desencriptar_all(mensaje, ID_emisor, token):
 	if firma_valida(d_firma, d_mensaje):
 		return d_mensaje
 	else:
-		print "La firma no es válida."
+		print "La firma no es valida."
 		return

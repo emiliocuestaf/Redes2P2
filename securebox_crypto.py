@@ -4,6 +4,7 @@ from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
 from Crypto.Random import get_random_bytes
 from Crypto.Cipher import AES, PKCS1_OAEP
+import Crypto.Util.Padding
 
 IVLEN = 16
 AESCLEN = 32
@@ -29,8 +30,10 @@ def encriptar_AES(mensaje, clave):
 
 	iv = get_random_bytes(IVLEN)
 
+	mensaje = Padding.pad(mensaje, 16)
+
 	cifrado_aes = AES.new(clave, AES.MODE_CBC, iv)
-	return iv + cipher_aes.encrypt(mensaje)
+	return iv + cifrado_aes.encrypt(mensaje)
 
 
 # coge la clave del AES del anadir firma y la cifra con RSA con la clave publica del receptor
@@ -92,7 +95,7 @@ def desencriptar_AES(clave, iv, c_mensaje):
 
 	cifrador = AES.new(clave, AES.MODE_CBC, iv)
 
-	return cifrador.decrypt(c_mensaje)
+	return self._unpad(cifrador.decrypt(c_mensaje))
 
 # Devuelve el hash, gracias a RSA con la clave publica del emisor
 

@@ -74,8 +74,11 @@ def descargar_fichero(id_fichero, ID_emisor, token):
 	if r.status_code == 200 :
 
 		print "-> OK: Descarga correcta"
+		mensaje_cifrado = r.content
+		
+		with open("mensaje_cifrado.txt", "w") as f:
+			f.write(mensaje_cifrado)
 
-		mensaje_cifrado = r.text
 		mensaje_descifrado = crypto.desencriptar_all(mensaje_cifrado, ID_emisor, token)
 
 		with open(id_fichero+".dat", "w") as f:

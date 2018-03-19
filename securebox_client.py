@@ -92,7 +92,7 @@ def main():
 
 	elif args.download:
 		if count != 2 or args.source_id == None:
-			print "Para ejecutar --upload es necesario indicar --source_id."
+			print "Para ejecutar --download es necesario indicar --source_id."
 			print "No es posible utilizar --download al mismo tiempo que otros parametros distintos a --source_id"
 		else:
 			files.descargar_fichero(id_fichero= args.download[0], ID_emisor= args.source_id[0], token= token)

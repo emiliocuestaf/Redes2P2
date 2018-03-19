@@ -10,8 +10,8 @@ from Crypto.Signature import pkcs1_15
 
 
 IVLEN = 16
+RSALEN = 256
 AESCLEN = 32
-SLEN = 32
 
 
 # 2 conceptos claros:
@@ -62,7 +62,6 @@ def firmar_fichero(fichero):
 def encriptar_AES(mensaje, clave):
 
 	iv = get_random_bytes(IVLEN)
-
 	mensaje = Padding.pad(mensaje, 16)
 
 	cifrado_aes = AES.new(clave, AES.MODE_CBC, iv)
@@ -71,7 +70,6 @@ def encriptar_AES(mensaje, clave):
 
 # coge la clave del AES del anadir firma y la cifra con RSA con la clave publica del receptor
 def crear_sobre(clave, ID_receptor, token):
-	
 	# Creamos la solicitud de la clave publica al servidor 
 	print "-> Recuperando clave publica de ID {}...".format(ID_receptor)
 	clave_publica_aux = users.buscar_clave_publica(ID_receptor, token)
@@ -90,15 +88,15 @@ def crear_sobre(clave, ID_receptor, token):
 	return cifrador.encrypt(clave)
 
 def encriptar_mensaje(mensaje, ID_receptor, token):
-		clave = get_random_bytes(AESCLEN)
-		c_mensaje = encriptar_AES(mensaje, clave)
-		sobre = crear_sobre(clave, ID_receptor, token)
+	clave = get_random_bytes(AESCLEN)
+	c_mensaje = encriptar_AES(mensaje, clave)
+	sobre = crear_sobre(clave, ID_receptor, token)
 
-		if sobre == None:
-			print "ERROR: No se ha podido encriptar el fichero de forma correcta"
-			return None
+	if sobre == None:
+		print "ERROR: No se ha podido encriptar el fichero de forma correcta"
+		return None
 
-		return sobre + c_mensaje
+	return sobre + c_mensaje
 
 #Esta funcion solo encripta un fichero, no utiliza para nada firma digital, pero si sobre. Se usa a nivel local.
 def encriptar_fichero(fichero, ID_receptor, token):
@@ -136,12 +134,12 @@ def firmar_y_encriptar_mensaje(mensaje, ID_receptor, token):
 def firmar_y_encriptar(fichero, ID_receptor, token):
 	print "Firmando y cifrando fichero " + fichero
 
-	with open(fichero, "r") as f:
+	with open(fichero, "rb") as f:
 		mensaje = f.read()
 	
 	mensaje_encriptado = firmar_y_encriptar_mensaje(mensaje, ID_receptor, token)
 
- 	with open("encsgn_" + fichero, 'w') as f:
+ 	with open("encsgn_" + fichero, 'wb') as f:
 		f.write(mensaje_encriptado)
  	
 	print "Fichero encriptado y firmado: encsgn_" + fichero
@@ -158,8 +156,6 @@ def abrir_sobre(c_clave):
 	clave_privada = RSA.import_key(open("clave_privada.dat", "r").read())
 
 	cifrador = PKCS1_OAEP.new(clave_privada)
-
-	print c_clave 
 	return cifrador.decrypt(c_clave)
 
 
@@ -199,25 +195,21 @@ def firma_valida(firma, mensaje, ID_emisor, token):
 
 # Funcion que se encarga de todo el proceso de desencriptacion
 
-def desencriptar_all(mensaje, ID_emisor, token):
+def desencriptar_all(mensaje , ID_emisor, token):
 	print "-> Analizando archivo..."
 	# Separamos el mensaje cifrado por partes (primero va el sobre, luego iv y luego la firma y el mensaje cifrados)
 
-	sobre = mensaje[0:AESCLEN]
+	aux = RSALEN+IVLEN
 
-	print "SOBREEEEEE " + sobre
-
-	aux = AESCLEN+16
-
-	iv = mensaje[AESCLEN:aux]
-
+	sobre = mensaje[0:RSALEN]
+	iv = mensaje[RSALEN:aux]
 	c_firma_y_mensaje = mensaje[aux:]
 
 	clave = abrir_sobre(sobre)
-	d_firma_y_mensaje = desencriptar_AES(clave, iv, c_mensaje)
+	d_firma_y_mensaje = desencriptar_AES(clave, iv, c_firma_y_mensaje)
 
-	d_firma = d_firma_y_mensaje[0:SLEN]
-	d_mensaje = d_firma_y_mensaje[SLEN:]
+	d_firma = d_firma_y_mensaje[0:RSALEN]
+	d_mensaje = d_firma_y_mensaje[RSALEN:]
 
 	if firma_valida(d_firma, d_mensaje, ID_emisor, token):
 		return d_mensaje 

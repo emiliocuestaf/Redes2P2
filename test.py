@@ -13,15 +13,12 @@ from  Crypto.Util import Padding
 #	*SOBRE
 # 	*FIRMITA
 
-with open("testenc.txt", "r") as f:
-	mensaje = f.read()
-	encriptadito = cripto.crear_firma(mensaje)
 
-print "pumba toa la firma " + encriptadito
+mensaje_encriptado = cripto.firmar_y_encriptar("testenc.txt", ID_receptor=338232, token="fb4Ed6c2De1B09C8")
 
-desencriptadito = cripto.firma_valida(encriptadito, mensaje+"IOH", 338232, "fb4Ed6c2De1B09C8")
+mensaje=cripto.desencriptar_all(open("encsgn_testenc.txt","r").read(), ID_emisor="338232", token="fb4Ed6c2De1B09C8")
 
-
+print mensaje
 #with open("encsgn_testenc.txt", "r") as f:
 #	mensaje = f.read()
 

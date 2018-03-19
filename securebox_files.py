@@ -6,6 +6,26 @@ from Crypto.PublicKey import RSA
 from Crypto.Random import get_random_bytes
 from Crypto.Cipher import AES, PKCS1_OAEP
 
+
+def codigos_error(error):
+	if error == "TOK1":
+		print "-> ERROR: token de usuario incorrecto."
+	elif error == "TOK2":
+		print "-> ERROR: token de usuario caducado, solicite uno nuevo."
+	elif error == "TOK3":
+		print "-> ERROR: falta cabecera de autenticacion."
+	elif error == "FILE1":
+		print "-> ERROR: se supera el tamaño maximo de fichero."
+	elif error == "FILE2":
+		print "-> ERROR: el id del fichero es incorrecto."
+	elif error == "FILE3":
+		print "-> ERROR: la cuota maxima de ficheros ha sido superada."
+	elif error == "ARGS1":
+		print "-> ERROR: los argumentos de la peticion HTTP son incorrectos."
+	else:
+		print "-> ERROR: indefinido."
+	return
+
 #Funcion que sube un fichero cifrado, devuelve el id y tamanio del fichero
 
 
@@ -25,10 +45,8 @@ def subir_fichero(fichero, token):
 			file_id = dic['file_id']
 			file_size = dic['file_size']
 			return file_id
-		elif r.status_code == 403:
-			print "-> ERROR: Fichero demasiado grande"
-			return None
 		else:
+			codigos_error(r.json()['error_code'])
 			return None
 	return
 
@@ -86,12 +104,11 @@ def descargar_fichero(id_fichero, ID_emisor, token):
 		
 		print "-> OK: El fichero se ha descargado correctamente en: " + id_fichero + ".dat" 
 		return
-	elif r.status_code == 401:
-		print "-> ERROR: El id del fichero no es correcto."
-		return OK
 	else:
-		return ERROR
-
+		codigos_error(r.json()['error_code'])
+		print "-> ERROR: El fichero no se ha podido descargar."
+		return None
+	return
 
 # Funcion que lista todos los ficheros pertenecientes a un usuario
 #return, en formato json, los siguientes campos:
@@ -118,6 +135,7 @@ def listar_ficheros(token):
 		print "OK: Ficheros mostrados correctamente"
 		return 
 	else:
+		codigos_error(r.json()['error_code'])
 		print "ERROR: No se han podido mostrar todos los ficheros satisfactoriamente"
 		return 
 
@@ -138,10 +156,8 @@ def borrar_fichero(id_fichero, token):
 	if r.status_code == 200:
 		print "-> OK: El fichero " + r.json()['file_id'] + "ha sido borrado satisfactoriamente"
 		return 
-	elif r.status_code == 401:
-		print "-> ERROR: El id del fichero no es correcto."
-		return
 	else:
+		codigos_error(r.json()['error_code'])
 		print "-> ERROR: El fichero no ha sido posible borrar el fichero correctamente"
 		return 
 

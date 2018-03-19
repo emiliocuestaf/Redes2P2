@@ -78,63 +78,63 @@ def main():
 			users.borrar_identidad(userID= args.delete_id[0], token= token)
 	elif args.upload:
 		if count != 2  or args.dest_id == None:
-			print "Para ejecutar --upload es necesario indicar --dest_id. \n No es posible utilizar --upload al mismo tiempo que otros parametros distintos a los anteriores"
-			
+			print "Para ejecutar --upload es necesario indicar --dest_id."
+			print "No es posible utilizar --upload al mismo tiempo que otros parametros distintos a los anteriores"
 		else:
-			files.upload(cadena= args.upload[0], token= token)
-
-	elif args.dest_id:
-		if args.upload == None and args.encrypt == None:
-			print "No tiene sentido utilizar --dest_id sin --upload o --encrypt"
-			
-	elif args.source_id:
-		if args.upload == None:
-			print "No tiene sentido utilizar --source_id sin --upload"
-			
+			files.cifrar_y_subir_fichero(fichero= args.upload[0], ID_receptor= args.dest_id[0], token= token)
+		
 	elif args.list_files:
 		if count != 1:
 			print "No es posible utilizar --list_files al mismo tiempo que otros parametros"
 			 
 		else:
-			print  "Subiendo fichero con nombre: "+  args.upload[0]
-			files.list_files(cadena= args.create_id[0], token= token)
+			files.listar_ficheros(token= token)
 
 	elif args.download:
-		if count != 1:
-			return "No es posible utilizar --download al mismo tiempo que otros parametros"
-			
+		if count != 2 or args.source_id == None:
+			print "Para ejecutar --upload es necesario indicar --source_id."
+			print "No es posible utilizar --download al mismo tiempo que otros parametros distintos a --source_id"
 		else:
-			pass
-			#llamada a funcion
+			files.descargar_fichero(id_fichero= args.download[0], ID_emisor= args.source_id[0], token= token)
+
 	elif args.delete_file:
 		if count != 1:
-			return "No es posible utilizar --delete_file al mismo tiempo que otros parametros"
+			print "No es posible utilizar --delete_file al mismo tiempo que otros parametros"
 			
 		else:
-			pass
-			#llamada a funcion
+			files.borrar_fichero(id_fichero= args.delete_file[0],token= token)
 	elif args.encrypt:
-		if count != 1:
-			return "No es posible utilizar --encrypt al mismo tiempo que otros parametros"
-			
+		if count != 2 or args.dest_id == None:
+			print "Para ejecutar --encrypt es necesario indicar --dest_id."
+			print "No es posible utilizar --encrypt al mismo tiempo que otros parametros distintos de --dest_id"
 		else:
-			pass
-			#llamada a funcion
+			crypto.encriptar_fichero(fichero= args.encrypt[0], ID_receptor= args.dest_id[0], token= token)
+	
 	elif args.sign:
 		if count != 1:
-			return "No es posible utilizar --sign al mismo tiempo que otros parametros"
+			print "No es posible utilizar --sign al mismo tiempo que otros parametros"
 			
 		else:
-			pass
-			#llamada a funcion
+			crypto.firmar_fichero(fichero= args.sign[0])
 	elif args.enc_sign:
-		if count != 1:
-			return "No es posible utilizar --enc_sign al mismo tiempo que otros parametros"	
+		if count != 2 or args.dest_id == None:
+			print "Para ejecutar --encrypt es necesario indicar --dest_id."
+			print "No es posible utilizar --enc_sign al mismo tiempo que otros parametros distintos de --dest_id"	
 		else:
-			pass
-			#llamada a funcion
+			crypto.firmar_y_encriptar(fichero= args.enc_sign[0], ID_receptor= args.dest_id[0], token= token)
+
+	elif args.dest_id:
+		if args.upload == None and args.encrypt == None and args.enc_sign == None:
+			print "No tiene sentido utilizar --dest_id sin --upload, --encrypt o --enc_sign"
+			
+	elif args.source_id:
+		if args.upload == None:
+			print "No tiene sentido utilizar --source_id sin --download"
+
 	else: 
-		return "ERROR: Utilice los argumentos correctamente. Para saber mas, utilice el comando:\n\n\tpython securebox_client.py --help\n"
+		print "ERROR: Utilice los argumentos correctamente. Para saber mas, utilice el comando:\n\n\tpython securebox_client.py --help\n"
+
+	return
 
 if __name__ == '__main__':
    main()

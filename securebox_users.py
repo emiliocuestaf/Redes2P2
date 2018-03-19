@@ -55,7 +55,7 @@ def buscar_clave_publica(userID, token):
 	if r.status_code == 200:
 		return r.json()['publicKey']
 	else:
-		print "ERROR. No se ha encontrado la clabe publica del usuario {}".format(userID)
+		print "ERROR. No se ha encontrado la clave publica del usuario {}".format(userID)
 		return None
 
 #casi equivalente a buscar clave publica
@@ -80,14 +80,12 @@ def buscar_identidad(data_search, token):
 	if r.status_code == 200:
 		print "OK"
 		d =  r.json()
-		#dkeys = d.keys()
 		print "{} usuarios encontrados".format(len(d))
 		count = 0
 		for item in d:
 			print "[{}] {}, {}, ID: {}".format(count+1, d[count]['nombre'], d[count]['email'], d[count]['userID'])
 			count += 1
 	else:
-		#return ERROR
 		print "No se han encontrado usuarios que concuerden con su busqueda"
 
 	return
@@ -105,7 +103,7 @@ def borrar_identidad(userID, token):
 
 	if r.status_code == 200:
 		print "OK"
-		print "El usuario con ID {} ha sido eliminado satisfactoriamente".format(r.json()['userID'])
+		print "El usuario con ID {} ha sido eliminado satisfactoriamente o no existia de antemano".format(r.json()['userID'])
 	else:
 		print "ERROR. No se ha podido borrar el usuario"
 

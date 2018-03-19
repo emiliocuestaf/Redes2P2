@@ -8,17 +8,19 @@ from Crypto.Random import get_random_bytes
 from Crypto.Cipher import AES, PKCS1_OAEP
 from  Crypto.Util import Padding
 
+# Check:
+# 	*AES
+#	*SOBRE
+# 	*FIRMITA
 
 with open("testenc.txt", "r") as f:
-	clave = get_random_bytes(32)
-	print "LA CLAVE D LA VIDA: " + clave
-	encriptadito = cripto.crear_sobre(clave, 338232, "fb4Ed6c2De1B09C8")
+	mensaje = f.read()
+	encriptadito = cripto.crear_firma(mensaje)
 
-print "pumba tol sobre " + encriptadito
+print "pumba toa la firma " + encriptadito
 
-desencriptadito = cripto.abrir_sobre(encriptadito)
+desencriptadito = cripto.firma_valida(encriptadito, mensaje+"IOH", 338232, "fb4Ed6c2De1B09C8")
 
-print "pumba aqui te pillo aqui te desencripto: " + desencriptadito
 
 #with open("encsgn_testenc.txt", "r") as f:
 #	mensaje = f.read()

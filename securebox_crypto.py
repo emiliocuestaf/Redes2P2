@@ -5,6 +5,9 @@ from Crypto.PublicKey import RSA
 from Crypto.Random import get_random_bytes
 from Crypto.Cipher import AES, PKCS1_OAEP
 from  Crypto.Util import Padding
+from Crypto.Signature import pkcs1_15
+
+
 
 IVLEN = 16
 AESCLEN = 32
@@ -21,15 +24,14 @@ SLEN = 32
 # utiliza HASH y crea la firma 
 
 def crear_firma(mensaje):
+
 	# Creamos el hash
-	h = SHA256.new()
-	# Lo aplicamos en el mensaje
-	h.update(mensaje)	
+	h = SHA256.new(mensaje)
 
 	clave_privada = RSA.import_key(open("clave_privada.dat", "r").read())
 	cifrador = PKCS1_OAEP.new(clave_privada)
-	return cifrador.encrypt(h.digest())
-
+	s = pkcs1_15.new(clave_privada).sign(h)
+	return s
 
 #Firma un archivo, sin encriptarlo con AES
 def firmar_mensaje(mensaje):
@@ -72,15 +74,15 @@ def crear_sobre(clave, ID_receptor, token):
 	
 	# Creamos la solicitud de la clave publica al servidor 
 	print "-> Recuperando clave publica de ID {}...".format(ID_receptor)
-	clave_publica = users.buscar_clave_publica(ID_receptor, token)
+	clave_publica_aux = users.buscar_clave_publica(ID_receptor, token)
 
-	if clave_publica == None:
+	if clave_publica_aux == None:
 		print "ERROR: No se ha encontrado un usuario con esa clave publica"
 		return None
 	
-	#clave_publica = RSA.import_key(clave_publica_aux)
+	clave_publica = RSA.import_key(clave_publica_aux)
 
-	print "-> OK: Clave encontrada Y ES ESTA WAAAAA: " + clave_publica
+	print "-> OK: Clave encontrada"
 
 	# Encriptamos la clave del AES
 
@@ -126,7 +128,7 @@ def firmar_y_encriptar_mensaje(mensaje, ID_receptor, token):
  	print "-> OK: Fichero firmado satisfactoriamente"
  	print "-> Encriptando..."
 
- 	mensaje_encriptado = encriptar_mensaje(mensaje, ID_receptor, token)
+ 	mensaje_encriptado = encriptar_mensaje(mensaje_firmado, ID_receptor, token)
  	
  	print "-> OK: Fichero encriptado satisfactoriamente"		
  	return mensaje_encriptado
@@ -157,6 +159,7 @@ def abrir_sobre(c_clave):
 
 	cifrador = PKCS1_OAEP.new(clave_privada)
 
+	print c_clave 
 	return cifrador.decrypt(c_clave)
 
 
@@ -167,38 +170,32 @@ def desencriptar_AES(clave, iv, c_mensaje):
 
 	return Padding.unpad(cifrador.decrypt(c_mensaje), 16)
 
-# Devuelve el hash, gracias a RSA con la clave publica del emisor
+# Comprueba si la firma es valida o no
 
-def desencriptar_firma(firma, ID_emisor, token):
+def firma_valida(firma, mensaje, ID_emisor, token):
+
+	# Creamos el hash
+	h = SHA256.new(mensaje)
 
 	# Creamos la solicitud de la clave publica al servidor 
 
-	clave_publica_aux = buscar_clave_publica(ID_receptor, token)
+	clave_publica_aux = users.buscar_clave_publica(ID_emisor, token)
 
-	if clave==ERROR:
+	if clave_publica_aux==None:
 
-		return ERROR
+		return None
 
 	clave_publica = RSA.import_key(clave_publica_aux)
 
-	cifrador = PKCS1_OAEP.new(clave_publica)
+	try:
+		pkcs1_15.new(clave_publica).verify(h, firma)
+	except (ValueError, TypeError):
+		print "-> ERROR: La firma no es valida. Fichero no confiable"
+		return False
 
-	return cifrador.decrypt(firma)
+	print "-> La firma es valida. Fichero confiable"
 
-# Comprueba si la firma es valida o no
-
-def firma_valida(firma_descifrada, mensaje):
-
-	# Creamos el hash
-	h = SHA256.new()
-	# Lo aplicamos en el mensaje
-	h.update(mensaje)
-
-	if h.digest() == firma_descifrada:
-		return true
-	else:
-		return false
-
+	return True
 
 # Funcion que se encarga de todo el proceso de desencriptacion
 
@@ -208,26 +205,27 @@ def desencriptar_all(mensaje, ID_emisor, token):
 
 	sobre = mensaje[0:AESCLEN]
 
+	print "SOBREEEEEE " + sobre
+
 	aux = AESCLEN+16
 
 	iv = mensaje[AESCLEN:aux]
 
-	aux2 = aux + SLEN
-
-	firma = mensaje[aux: aux2]
-
-	c_mensaje = mensaje[aux2:]
+	c_firma_y_mensaje = mensaje[aux:]
 
 	clave = abrir_sobre(sobre)
-	d_mensaje = desencriptar_AES(clave, iv, c_mensaje)
-	d_firma = desencriptar_firma(firma, ID_emisor, token)
+	d_firma_y_mensaje = desencriptar_AES(clave, iv, c_mensaje)
 
-	if firma_valida(d_firma, d_mensaje):
-		return d_mensaje
+	d_firma = d_firma_y_mensaje[0:SLEN]
+	d_mensaje = d_firma_y_mensaje[SLEN:]
+
+	if firma_valida(d_firma, d_mensaje, ID_emisor, token):
+		return d_mensaje 
 
 	else:
-		print "-> ERROR: La firma no es valida. Fichero no confiable"
 		return None
+
+	return
 
 
 #funcion para probar cosillas, no necesaria

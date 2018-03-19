@@ -72,15 +72,15 @@ def crear_sobre(clave, ID_receptor, token):
 	
 	# Creamos la solicitud de la clave publica al servidor 
 	print "-> Recuperando clave publica de ID {}...".format(ID_receptor)
-	clave_publica_aux = users.buscar_clave_publica(ID_receptor, token)
+	clave_publica = users.buscar_clave_publica(ID_receptor, token)
 
-	if clave_publica_aux == None:
+	if clave_publica == None:
 		print "ERROR: No se ha encontrado un usuario con esa clave publica"
 		return None
 	
-	clave_publica = RSA.import_key(clave_publica_aux)
+	#clave_publica = RSA.import_key(clave_publica_aux)
 
-	print "-> OK: Clave encontrada"
+	print "-> OK: Clave encontrada Y ES ESTA WAAAAA: " + clave_publica
 
 	# Encriptamos la clave del AES
 
@@ -165,7 +165,7 @@ def desencriptar_AES(clave, iv, c_mensaje):
 
 	cifrador = AES.new(clave, AES.MODE_CBC, iv)
 
-	return self._unpad(cifrador.decrypt(c_mensaje))
+	return Padding.unpad(cifrador.decrypt(c_mensaje), 16)
 
 # Devuelve el hash, gracias a RSA con la clave publica del emisor
 

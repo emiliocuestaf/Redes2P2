@@ -1,5 +1,6 @@
 import securebox_crypto as crypto
 import requests
+import os
 from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
 from Crypto.Random import get_random_bytes
@@ -8,25 +9,28 @@ from Crypto.Cipher import AES, PKCS1_OAEP
 #Funcion que sube un fichero cifrado, devuelve el id y tamanio del fichero
 
 
-def subir_mensaje(mensaje, token):
+def subir_fichero(fichero, token):
 	
-	# Escritura de la peticion de la subida
-	url = 'https://vega.ii.uam.es:8080/api/files/upload'
-	headers = {'Authorization': "Bearer " + token}
+	with open(fichero, "r") as f:
+		
+		# Escritura de la peticion de la subida
+		url = 'https://vega.ii.uam.es:8080/api/files/upload'
+		headers = {'Authorization': "Bearer " + token}
 
-	# Envio de solicitud, se almacena respuesta en r
-	r = requests.post(url, headers=headers, files={'ufile':mensaje})
+		# Envio de solicitud, se almacena respuesta en r
+		r = requests.post(url, headers=headers, files={'ufile':f})
 
-	if r.status_code == 200 :
-		dic = r.json()
-		file_id = dic['file_id']
-		file_size = dic['file_size']
-		return file_id
-	elif r.status_code == 403:
-		print "-> ERROR: Fichero demasiado grande"
-		return None
-	else:
-		return None
+		if r.status_code == 200 :
+			dic = r.json()
+			file_id = dic['file_id']
+			file_size = dic['file_size']
+			return file_id
+		elif r.status_code == 403:
+			print "-> ERROR: Fichero demasiado grande"
+			return None
+		else:
+			return None
+	return
 
 
 def cifrar_y_subir_fichero(fichero, ID_receptor, token):
@@ -36,13 +40,18 @@ def cifrar_y_subir_fichero(fichero, ID_receptor, token):
 		mensaje = f.read()
 
 	mensaje_encriptado = crypto.firmar_y_encriptar_mensaje(mensaje, ID_receptor, token)
-		
+	
+	with open("encrypted_"+fichero, "w") as f:
+		f.write(mensaje_encriptado)
+
 	print "-> Subiendo fichero " + fichero	
-		
-	file_id = subir_mensaje(mensaje_encriptado, token) 
+
+	file_id = subir_fichero("encrypted_"+fichero, token) 
 	if file_id == None:
+		os.remove("encrypted_"+fichero)
 		print "-> ERROR: EL fichero no se ha podido subir correctamente"
 		return
+	os.remove("encrypted_"+fichero)
 	print "-> OK"
 	print "Subida realizada satisfactoriamente, ID del fichero " + file_id
 	return 
@@ -101,7 +110,7 @@ def listar_ficheros(token):
 		flist = d['files_list']
 		count = 0
 		for item in flist:
-			print "-> [{}] ID: {}".format(count+1, item['fileID'])
+			print "-> [{}] ID: {}, fileName: {}".format(count+1, item['fileID'], item['fileName'])
 			count += 1
 		print "OK: Ficheros mostrados correctamente"
 		return 

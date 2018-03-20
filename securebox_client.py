@@ -26,11 +26,20 @@ conf_path = "./conf/authorization.dat"
 #######
 def read_dictionary():
 	d = {}
-	with open(conf_path) as f:
-	    for line in f:
-	       (key, val) = line.split()
-	       d[key] = val
+
+	try:
+		with open(conf_path) as f:
+		    for line in f:
+		       (key, val) = line.split()
+		       d[key] = val
+	
+	except EnvironmentError:
+		print "-> ERROR: No se encontro el fichero de autenticacion"
+		print "-> Dicho fichero debe corresponderse con la siguiente ruta: {}".format(conf_path)
+		return None
+
 	return d
+
 
 def main():
 
@@ -73,8 +82,18 @@ def main():
 			count += 1
 
 	#TODO: control de errores in here
-	d = read_dictionary()	
-	token = d['token']
+	d = read_dictionary()
+
+	if d == None:
+		return 
+
+	if 'token' in d:
+  		token = d['token']
+	else:
+  		print "-> ERROR: Su fichero de autenticacion no se adecua a los requerimentos del programa"
+  		print "-> ERROR: El campo token es ESTRICTEMENTE NECESARIO"
+  		return
+	
 
 	if args.create_id:
 		if count != 1:

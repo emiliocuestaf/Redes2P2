@@ -1,6 +1,25 @@
 from Crypto.PublicKey import RSA
 import requests
 
+def codigos_error(error):
+	if error == "TOK1":
+		print "-> ERROR: token de usuario incorrecto."
+	elif error == "TOK2":
+		print "-> ERROR: token de usuario caducado, solicite uno nuevo."
+	elif error == "TOK3":
+		print "-> ERROR: falta cabecera de autenticacion."
+	elif error == "USER_ID1":
+		print "-> ERROR: el id no existe."
+	elif error == "USER_ID2":
+		print "-> ERROR: no se ha encontrado al usuario con los datos proporcionados."
+	elif error == "USER_ID3":
+		print "-> ERROR: problema con id."
+	elif error == "ARGS1":
+		print "-> ERROR: los argumentos de la peticion HTTP son incorrectos."
+	else:
+		print "-> ERROR: indefinido."
+	return
+
 # almacena un usuario, genera las claves y guarda su clave publica en el servidor
 # y la privada de forma local.
 def registro(nombre, email, alias, token):
@@ -37,7 +56,8 @@ def registro(nombre, email, alias, token):
 		print "\t*Nombre: {}".format(r.json()['nombre'])
 		print "\t*ts: {}".format(r.json()['ts'])
 	else :
-		print "ERROR!!!\n No se ha podido completar el registro satisfactoriamente"
+		codigos_error(r.json()['error_code'])
+		print "-> ERROR: El usuario no se ha podido registrar."
 
 	return
 
@@ -55,7 +75,8 @@ def buscar_clave_publica(userID, token):
 	if r.status_code == 200:
 		return r.json()['publicKey']
 	else:
-		print "ERROR. No se ha encontrado la clave publica del usuario {}".format(userID)
+		codigos_error(r.json()['error_code'])
+		print "-> ERROR. No se ha encontrado la clave publica del usuario {}".format(userID)
 		return None
 
 #casi equivalente a buscar clave publica
@@ -86,7 +107,8 @@ def buscar_identidad(data_search, token):
 			print "[{}] {}, {}, ID: {}".format(count+1, d[count]['nombre'], d[count]['email'], d[count]['userID'])
 			count += 1
 	else:
-		print "No se han encontrado usuarios que concuerden con su busqueda"
+		codigos_error(r.json()['error_code'])
+		print "-> ERROR: no se han encontrado usuarios que concuerden con su busqueda"
 
 	return
 
@@ -105,6 +127,6 @@ def borrar_identidad(userID, token):
 		print "OK"
 		print "El usuario con ID {} ha sido eliminado satisfactoriamente o no existia de antemano".format(r.json()['userID'])
 	else:
-		print "ERROR. No se ha podido borrar el usuario"
-
+		codigos_error(r.json()['error_code'])
+		print "-> ERROR: no se ha podido borrar el usuario"
 	return	

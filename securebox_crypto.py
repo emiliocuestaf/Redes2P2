@@ -45,9 +45,13 @@ def firmar_fichero(fichero):
 
 	print "-> Firmando fichero " + fichero + " ..."
 
-	with open(fichero, "r") as f:
-		mensaje = f.read()
-	
+	try:
+		with open(fichero, "rb") as f:
+			mensaje = f.read()
+	except EnvironmentError:
+		print "-> ERROR: No se puede abrir el fichero (no existe)."
+		return None
+
 	mensaje_firmado = firmar_mensaje(mensaje)
 
 	with open("signed_"+fichero, "w") as f:
@@ -75,7 +79,7 @@ def crear_sobre(clave, ID_receptor, token):
 	clave_publica_aux = users.buscar_clave_publica(ID_receptor, token)
 
 	if clave_publica_aux == None:
-		print "ERROR: No se ha encontrado un usuario con esa clave publica"
+		print "-> ERROR: No se ha encontrado clave publica para el usuario."
 		return None
 	
 	clave_publica = RSA.import_key(clave_publica_aux)
@@ -93,7 +97,7 @@ def encriptar_mensaje(mensaje, ID_receptor, token):
 	sobre = crear_sobre(clave, ID_receptor, token)
 
 	if sobre == None:
-		print "ERROR: No se ha podido encriptar el fichero de forma correcta"
+		print "-> ERROR: No se ha podido encriptar el fichero de forma correcta"
 		return None
 
 	return sobre + c_mensaje
@@ -103,10 +107,19 @@ def encriptar_fichero(fichero, ID_receptor, token):
 	
 	print "-> Encriptando el fichero " + fichero + " para el usuario " + ID_receptor +" ..."
 	# Generamos la clave que usara AES y encriptamos con dicha clave
-	with open(fichero, 'r') as f:
-		mensaje = f.read()
+	try:
+		with open(fichero, 'rb') as f:
+			mensaje = f.read()
+
+	except EnvironmentError:
+		print "-> ERROR: No se puede abrir el fichero (no existe)."
+		return None
 
 	envelope = encriptar_mensaje(mensaje, ID_receptor, token) 
+
+	if envelope == None:
+		print "-> ERROR: se aborta el encriptado del fichero."
+		return None
 
 	with open("encrypted_" + fichero, 'w') as f_enc:
 		f_enc.write(envelope)
@@ -127,6 +140,10 @@ def firmar_y_encriptar_mensaje(mensaje, ID_receptor, token):
  	print "-> Encriptando..."
 
  	mensaje_encriptado = encriptar_mensaje(mensaje_firmado, ID_receptor, token)
+
+ 	if mensaje_encriptado == None:
+ 		print "-> ERROR: se aborta el encriptado del fichero."
+		return None
  	
  	print "-> OK: Fichero encriptado satisfactoriamente"		
  	return mensaje_encriptado
@@ -134,10 +151,17 @@ def firmar_y_encriptar_mensaje(mensaje, ID_receptor, token):
 def firmar_y_encriptar(fichero, ID_receptor, token):
 	print "Firmando y cifrando fichero " + fichero
 
-	with open(fichero, "rb") as f:
-		mensaje = f.read()
+	try:
+		with open(fichero, "rb") as f:
+			mensaje = f.read()
+	except EnvironmentError:
+		print "-> ERROR: No se puede abrir el fichero (no existe)."
+		return None
 	
 	mensaje_encriptado = firmar_y_encriptar_mensaje(mensaje, ID_receptor, token)
+
+	if mensaje_encriptado == None:
+		return None
 
  	with open("encsgn_" + fichero, 'wb') as f:
 		f.write(mensaje_encriptado)
@@ -178,7 +202,7 @@ def firma_valida(firma, mensaje, ID_emisor, token):
 	clave_publica_aux = users.buscar_clave_publica(ID_emisor, token)
 
 	if clave_publica_aux==None:
-
+		print "-> ERROR: no se puede comprobar la firma."
 		return None
 
 	clave_publica = RSA.import_key(clave_publica_aux)
@@ -205,38 +229,26 @@ def desencriptar_all(mensaje , ID_emisor, token):
 	iv = mensaje[RSALEN:aux]
 	c_firma_y_mensaje = mensaje[aux:]
 
+	with open("sobre.txt", "wb") as f:
+		f.write(sobre)
+
+	with open("iv.txt", "wb") as f:
+		f.write(iv)
+
+	with open("mensajito.txt", "wb") as f:
+		f.write(c_firma_y_mensaje)
+
 	clave = abrir_sobre(sobre)
 	d_firma_y_mensaje = desencriptar_AES(clave, iv, c_firma_y_mensaje)
 
 	d_firma = d_firma_y_mensaje[0:RSALEN]
 	d_mensaje = d_firma_y_mensaje[RSALEN:]
 
-	if firma_valida(d_firma, d_mensaje, ID_emisor, token):
-		return d_mensaje 
-
-	else:
+	validar = firma_valida(d_firma, d_mensaje, ID_emisor, token)
+	if validar == True:
+		return d_mensaje
+	elif validar == None:
+		print "-> ERROR: abortamos proceso de desencriptado."
 		return None
 
-	return
-
-
-#funcion para probar cosillas, no necesaria
-def desencriptar_fichero(mensaje, ID_emisor):
-
-	# Separamos el mensaje cifrado por partes (primero va el sobre, luego iv y luego la firma y el mensaje cifrados)
-
-	sobre = mensaje[0:AESCLEN]
-
-	aux = AESCLEN+16
-
-	iv = mensaje[AESCLEN:aux]
-
-	c_mensaje = mensaje[aux+1:]
-
-	clave = abrir_sobre(sobre)
-	d_mensaje = desencriptar_AES(clave, iv, c_mensaje)
-
-	with open("salidatest.txt", "w") as f:
-		f.write(d_mensaje)
-	
-	return 
+	return None

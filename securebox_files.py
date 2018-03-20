@@ -15,7 +15,7 @@ def codigos_error(error):
 	elif error == "TOK3":
 		print "-> ERROR: falta cabecera de autenticacion."
 	elif error == "FILE1":
-		print "-> ERROR: se supera el tamaño maximo de fichero."
+		print "-> ERROR: se supera el tamanio maximo de fichero."
 	elif error == "FILE2":
 		print "-> ERROR: el id del fichero es incorrecto."
 	elif error == "FILE3":
@@ -30,34 +30,46 @@ def codigos_error(error):
 
 
 def subir_fichero(fichero, token):
-	
-	with open(fichero, "r") as f:
-		
-		# Escritura de la peticion de la subida
-		url = 'https://vega.ii.uam.es:8080/api/files/upload'
-		headers = {'Authorization': "Bearer " + token}
 
-		# Envio de solicitud, se almacena respuesta en r
-		r = requests.post(url, headers=headers, files={'ufile':f})
+	try:
+		with open(fichero, "r") as f:	
+			# Escritura de la peticion de la subida
+			url = 'https://vega.ii.uam.es:8080/api/files/upload'
+			headers = {'Authorization': "Bearer " + token}
 
-		if r.status_code == 200 :
-			dic = r.json()
-			file_id = dic['file_id']
-			file_size = dic['file_size']
-			return file_id
-		else:
-			codigos_error(r.json()['error_code'])
-			return None
+			# Envio de solicitud, se almacena respuesta en r
+			r = requests.post(url, headers=headers, files={'ufile':f})
+	except EnvironmentError:
+		print "-> ERROR: No se puede abrir el fichero (no existe)."
+		return None
+
+	if r.status_code == 200 :
+		dic = r.json()
+		file_id = dic['file_id']
+		file_size = dic['file_size']
+		return file_id
+	else:
+		codigos_error(r.json()['error_code'])
+		return None
 	return
 
 
 def cifrar_y_subir_fichero(fichero, ID_receptor, token):
 	
 	print "-> Cifrando y subiendo el fichero " + fichero + "..."	
-	with open(fichero, "r") as f:
-		mensaje = f.read()
+	try:
+		with open(fichero, "r") as f:
+			mensaje = f.read()
+	except EnvironmentError:
+		print "-> ERROR: No se puede abrir el fichero (no existe)."
+		return None
+	
 
 	mensaje_encriptado = crypto.firmar_y_encriptar_mensaje(mensaje, ID_receptor, token)
+
+	if mensaje_encriptado == None:
+		print "-> ERROR: se aborta la subida del fichero."
+		return
 	
 	with open("encrypted_"+fichero, "w") as f:
 		f.write(mensaje_encriptado)
@@ -98,6 +110,10 @@ def descargar_fichero(id_fichero, ID_emisor, token):
 			f.write(mensaje_cifrado)
 
 		mensaje_descifrado = crypto.desencriptar_all(mensaje_cifrado, ID_emisor, token)
+
+		if mensaje_descifrado == None:
+			print "-> ERROR: Abortamos bajada del fichero."
+			return
 
 		with open(id_fichero+".dat", "w") as f:
 			f.write(mensaje_descifrado)
@@ -158,6 +174,6 @@ def borrar_fichero(id_fichero, token):
 		return 
 	else:
 		codigos_error(r.json()['error_code'])
-		print "-> ERROR: El fichero no ha sido posible borrar el fichero correctamente"
+		print "-> ERROR: no ha sido posible borrar el fichero correctamente"
 		return 
 

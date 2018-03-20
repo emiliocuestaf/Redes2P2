@@ -8,8 +8,6 @@ from Crypto.Cipher import AES, PKCS1_OAEP
 from  Crypto.Util import Padding
 from Crypto.Signature import pkcs1_15
 
-
-
 IVLEN = 16
 RSALEN = 256
 AESCLEN = 32

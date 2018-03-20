@@ -55,13 +55,23 @@ def registro(nombre, email, alias, token):
 
 		# Las proximas lineas sirven para conseguir el ID del usuario, es necesaria una llamada auxiliar a search
 
-		r = buscar_identidad_aux(data_search=email, token= token)
+		r2 = buscar_identidad_aux(data_search=email, token= token)
 
-		print r.json().
+		d =  r2.json()
+		maxts = -1000
+		currentID = None
+		for item in d:
+			aux = item['ts']
+			if aux > maxts :
+				maxts = aux
+				currentID = item['userID'] 
 
-		print "-> OK\nEstos son sus credenciales:"
+		# Se imprimen todos los credenciales obtenidos por pantalla
+			
+		print "-> OK\n-> Estos son sus credenciales:"
 		print "-> \t*Nombre: {}".format(r.json()['nombre'])
 		print "-> \t*ts: {}".format(r.json()['ts'])
+		print "-> \t*UserID: {}".format(currentID)
 	else :
 		codigos_error(r.json()['error_code'])
 		print "-> ERROR: El usuario no se ha podido registrar."

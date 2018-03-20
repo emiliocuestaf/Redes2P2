@@ -1,3 +1,13 @@
+########
+# REDES 2 - PRACTICA 2
+# FICHERO: securebox_client.py
+# DESCRIPCION: Fichero que define el comportamiento mas externo del cliente para securebox
+# AUTORES: 
+#	* Luis Carabe Fernandez-Pedraza 
+#	* Emilio Cuesta Fernandez
+# LAST-MODIFIED: 20-3-2018
+########
+
 import argparse
 import sys
 import ast
@@ -5,7 +15,13 @@ import securebox_files as files
 import securebox_crypto as crypto
 import securebox_users as users
 
-#Codigo sacado online
+
+#######
+# FUNCION: char processRequestchar request
+# ARGS_IN: char request - peticin de entrada (termina en \r\n)
+# DESCRIPCION: Procesa la peticin de entrada, y blah, blah...
+# ARGS_OUT: char  - devuelve un puntero senalado el verbo de la peticion recibida
+#######
 def read_dictionary():
 	d = {}
 	with open("authorization.dat") as f:

@@ -1,5 +1,6 @@
 import securebox_files as files
 import securebox_users as users
+import os
 from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
 from Crypto.Random import get_random_bytes
@@ -42,6 +43,8 @@ def firmar_mensaje(mensaje):
 
 
 def firmar_fichero(fichero):
+	# Conseguimos el nombre real del fichero, solo util si se trabaja con ficheros en otros directorios
+	file_name = os.path.basename(fichero)
 
 	print "-> Firmando fichero " + fichero + " ..."
 
@@ -54,11 +57,20 @@ def firmar_fichero(fichero):
 
 	mensaje_firmado = firmar_mensaje(mensaje)
 
-	with open("signed_"+fichero, "w") as f:
+	#Comprobamos que los directorios que necesitamos existen, y si no, los creamos.
+	direc = "./files"
+	if os.path.exists(direc) == False:
+		os.mkdir(direc)
+	direc = "./files/signed"
+	if os.path.exists(direc) == False:
+		os.mkdir(direc)
+	file_path = "{}/{}".format(direc, file_name)
+
+	with open(file_path, "w") as f:
 		f.write(mensaje_firmado)
 
 	print "-> OK: Fichero firmado satisfactoriamente"
-	print "Fichero firmado: signed_" + fichero
+	print "-> Fichero firmado en la ruta " + file_path
 
 	return
 
@@ -105,6 +117,9 @@ def encriptar_mensaje(mensaje, ID_receptor, token):
 #Esta funcion solo encripta un fichero, no utiliza para nada firma digital, pero si sobre. Se usa a nivel local.
 def encriptar_fichero(fichero, ID_receptor, token):
 	
+	# Conseguimos el nombre real del fichero, solo util si se trabaja con ficheros en otros directorios
+	file_name = os.path.basename(fichero)
+
 	print "-> Encriptando el fichero " + fichero + " para el usuario " + ID_receptor +" ..."
 	# Generamos la clave que usara AES y encriptamos con dicha clave
 	try:
@@ -121,11 +136,21 @@ def encriptar_fichero(fichero, ID_receptor, token):
 		print "-> ERROR: se aborta el encriptado del fichero."
 		return None
 
-	with open("encrypted_" + fichero, 'w') as f_enc:
+	#Comprobamos que los directorios que necesitamos existen, y si no, los creamos.
+	direc = "./files"
+	if os.path.exists(direc) == False:
+		os.mkdir(direc)
+	direc = "./files/encrypted"
+	if os.path.exists(direc) == False:
+		os.mkdir(direc)
+	file_path = "{}/{}".format(direc, file_name)
+
+
+	with open(file_path, 'w') as f_enc:
 		f_enc.write(envelope)
 
 	print "-> OK: Encriptado realizado satisfactoriamente"
-	print "El fichero encriptado: encrypted_" + fichero
+	print "-> Fichero encriptado en la ruta " + file_path
 	return 
 
 # Se encarga de todo el proceso de cifrar un mensaje
@@ -149,7 +174,11 @@ def firmar_y_encriptar_mensaje(mensaje, ID_receptor, token):
  	return mensaje_encriptado
 
 def firmar_y_encriptar(fichero, ID_receptor, token):
-	print "Firmando y cifrando fichero " + fichero
+
+	# Conseguimos el nombre real del fichero, solo util si se trabaja con ficheros en otros directorios
+	file_name = os.path.basename(fichero)
+
+	print "Firmando y cifrando fichero {} para el receptor #{}...".format(fichero, ID_receptor)
 
 	try:
 		with open(fichero, "rb") as f:
@@ -163,10 +192,18 @@ def firmar_y_encriptar(fichero, ID_receptor, token):
 	if mensaje_encriptado == None:
 		return None
 
- 	with open("encsgn_" + fichero, 'wb') as f:
+	direc = "./files"
+	if os.path.exists(direc) == False:
+		os.mkdir(direc)
+	direc = "./files/signed_and_encrypted"
+	if os.path.exists(direc) == False:
+		os.mkdir(direc)
+	file_path = "{}/{}".format(direc, file_name)
+
+ 	with open(file_path, 'wb') as f:
 		f.write(mensaje_encriptado)
  	
-	print "Fichero encriptado y firmado: encsgn_" + fichero
+	print "-> Fichero encriptado y firmado en la ruta: " + file_path
  	return
 
 
@@ -174,7 +211,7 @@ def firmar_y_encriptar(fichero, ID_receptor, token):
 
 # descifra la clave del AES con la clave privada del receptor
 def abrir_sobre(c_clave):
-
+ 
 	# Conseguimos la clave privada del usuario
 
 	clave_privada = RSA.import_key(open("clave_privada.dat", "r").read())
@@ -229,26 +266,30 @@ def desencriptar_all(mensaje , ID_emisor, token):
 	iv = mensaje[RSALEN:aux]
 	c_firma_y_mensaje = mensaje[aux:]
 
-	with open("sobre.txt", "wb") as f:
-		f.write(sobre)
-
-	with open("iv.txt", "wb") as f:
-		f.write(iv)
-
-	with open("mensajito.txt", "wb") as f:
-		f.write(c_firma_y_mensaje)
-
+	print "-> Abriendo sobre..."
+	
 	clave = abrir_sobre(sobre)
+
+	print "-> OK"
+
+	print "-> Desencriptado AES..."
+
 	d_firma_y_mensaje = desencriptar_AES(clave, iv, c_firma_y_mensaje)
+
+	print "-> OK"
 
 	d_firma = d_firma_y_mensaje[0:RSALEN]
 	d_mensaje = d_firma_y_mensaje[RSALEN:]
 
+	print "-> Validando firma..."
 	validar = firma_valida(d_firma, d_mensaje, ID_emisor, token)
+	
 	if validar == True:
+		print "-> OK"
 		return d_mensaje
 	elif validar == None:
 		print "-> ERROR: abortamos proceso de desencriptado."
 		return None
 
+	print "-> ERROR"
 	return None

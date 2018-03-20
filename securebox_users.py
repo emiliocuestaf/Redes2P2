@@ -30,8 +30,8 @@ def registro(nombre, email, alias, token):
 	privateKey = key.exportKey('PEM')
 	publicKey = key.publickey().exportKey('PEM')
 
-	print "Registrando usuario con:\n\t*Nombre: {}\n\t*Email: {}\n\t*Alias: {}".format(nombre, email, alias)
-	print "..."
+	print "-> Registrando usuario con:\n\t*Nombre: {}\n\t*Email: {}\n\t*Alias: {}".format(nombre, email, alias)
+	print "-> ..."
 	#Escritura de la peticion de registro
 	url = 'https://vega.ii.uam.es:8080/api/users/register'
 	headers = {'Authorization': "Bearer " + token}
@@ -52,9 +52,9 @@ def registro(nombre, email, alias, token):
 			reg_file.write(r.text)
 		reg_file.closed
 
-		print "OK\nEstos son sus credenciales:"
-		print "\t*Nombre: {}".format(r.json()['nombre'])
-		print "\t*ts: {}".format(r.json()['ts'])
+		print "-> OK\nEstos son sus credenciales:"
+		print "-> \t*Nombre: {}".format(r.json()['nombre'])
+		print "-> \t*ts: {}".format(r.json()['ts'])
 	else :
 		codigos_error(r.json()['error_code'])
 		print "-> ERROR: El usuario no se ha podido registrar."
@@ -89,7 +89,7 @@ def buscar_clave_publica(userID, token):
 #TODO: confirmar que json devuelve un diccionario(seria muy facil mapear en la respuesta eso)
 def buscar_identidad(data_search, token):
 
-	print "Buscando usuario {} en el servidor...".format(data_search)
+	print "-> Buscando usuario {} en el servidor...".format(data_search)
 
 	#Escritura de la peticion de clave publica
 	url = 'https://vega.ii.uam.es:8080/api/users/search'
@@ -99,9 +99,9 @@ def buscar_identidad(data_search, token):
 	r = requests.post(url, headers=headers, json=args)
 
 	if r.status_code == 200:
-		print "OK"
+		print "-> OK"
 		d =  r.json()
-		print "{} usuarios encontrados".format(len(d))
+		print "-> {} usuarios encontrados".format(len(d))
 		count = 0
 		for item in d:
 			print "[{}] {}, {}, ID: {}".format(count+1, d[count]['nombre'], d[count]['email'], d[count]['userID'])
@@ -124,8 +124,8 @@ def borrar_identidad(userID, token):
 	r = requests.post(url, headers=headers, json=args)
 
 	if r.status_code == 200:
-		print "OK"
-		print "El usuario con ID {} ha sido eliminado satisfactoriamente o no existia de antemano".format(r.json()['userID'])
+		print "-> OK"
+		print "-> El usuario con ID {} ha sido eliminado satisfactoriamente o no existia de antemano".format(r.json()['userID'])
 	else:
 		codigos_error(r.json()['error_code'])
 		print "-> ERROR: no se ha podido borrar el usuario"

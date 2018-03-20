@@ -5,6 +5,8 @@ from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
 from Crypto.Random import get_random_bytes
 from Crypto.Cipher import AES, PKCS1_OAEP
+from shutil import copyfile
+
 
 
 def codigos_error(error):
@@ -56,6 +58,8 @@ def subir_fichero(fichero, token):
 
 def cifrar_y_subir_fichero(fichero, ID_receptor, token):
 	
+	file_name = os.path.basename(fichero)
+
 	print "-> Cifrando y subiendo el fichero " + fichero + "..."	
 	try:
 		with open(fichero, "r") as f:
@@ -71,19 +75,21 @@ def cifrar_y_subir_fichero(fichero, ID_receptor, token):
 		print "-> ERROR: se aborta la subida del fichero."
 		return
 	
-	with open("encrypted_"+fichero, "w") as f:
+	file_path = "./files/signed_and_encrypted/{}".format(file_name)
+
+	with open(file_path, "w") as f:
 		f.write(mensaje_encriptado)
 
 	print "-> Subiendo fichero " + fichero	
 
-	file_id = subir_fichero("encrypted_"+fichero, token) 
+	file_id = subir_fichero(file_path, token) 
 	if file_id == None:
-		os.remove("encrypted_"+fichero)
+		os.remove(file_path)
 		print "-> ERROR: EL fichero no se ha podido subir correctamente"
 		return
-	os.remove("encrypted_"+fichero)
+	os.remove(file_path)
 	print "-> OK"
-	print "Subida realizada satisfactoriamente, ID del fichero " + file_id
+	print "-> Subida realizada satisfactoriamente, ID del fichero " + file_id
 	return 
 
 # Funcion que descarga un fichero del sistema, devolviendolo en binario
@@ -104,26 +110,44 @@ def descargar_fichero(id_fichero, ID_emisor, token):
 	if r.status_code == 200 :
 
 		print "-> OK: Descarga correcta"
+
+		# Buscamos la cabecera que contiene el nombre del archivo
+		# Esto solo lo hacemos si sc = 200 porque si no no tenemos garantia cd que exista la cabecera
+		headers = r.headers
+		file_name = "{}".format(headers['content-disposition'].split('"')[1])
+	
+		#Comprobamos que los directorios que necesitamos existen, y si no, los creamos.
+		direc = "./files"
+		if os.path.exists(direc) == False:
+			os.mkdir(direc)
+		direc = "./files/downloads"
+		if os.path.exists(direc) == False:
+			os.mkdir(direc)
+
+		file_path = "{}/{}".format(direc, file_name)
 		mensaje_cifrado = r.content
 		
-		with open("mensaje_cifrado.txt", "w") as f:
-			f.write(mensaje_cifrado)
-
-		mensaje_descifrado = crypto.desencriptar_all(mensaje_cifrado, ID_emisor, token)
-
+		try:	
+			mensaje_descifrado = crypto.desencriptar_all(mensaje_cifrado, ID_emisor, token)
+		except (ValueError, TypeError):
+			print "-> ERROR: No se ha podido completar la decodificacion. Aborting"
+			return
+	
 		if mensaje_descifrado == None:
 			print "-> ERROR: Abortamos bajada del fichero."
 			return
 
-		with open(id_fichero+".dat", "w") as f:
+		with open(file_path, "w") as f:
 			f.write(mensaje_descifrado)
 		
-		print "-> OK: El fichero se ha descargado correctamente en: " + id_fichero + ".dat" 
+		print "-> OK: El fichero se ha descargado correctamente en: {}".format(file_path) 
 		return
+
 	else:
 		codigos_error(r.json()['error_code'])
 		print "-> ERROR: El fichero no se ha podido descargar."
 		return None
+
 	return
 
 # Funcion que lista todos los ficheros pertenecientes a un usuario

@@ -14,9 +14,12 @@ from  Crypto.Util import Padding
 # 	*FIRMITA
 
 
-mensaje_encriptado = cripto.firmar_y_encriptar("testenc.txt", ID_receptor=338232, token="fb4Ed6c2De1B09C8")
+mensaje_encriptado = cripto.firmar_y_encriptar("paraRodri.txt", ID_receptor=338232, token="fb4Ed6c2De1B09C8")
 
-mensaje=cripto.desencriptar_all(open("encsgn_testenc.txt","r").read(), ID_emisor="338232", token="fb4Ed6c2De1B09C8")
+with open("encsgn_paraRodri.txt","rb") as f:
+	mensaje = f.read()
+
+mensaje=cripto.desencriptar_all(mensaje, ID_emisor="338232", token="fb4Ed6c2De1B09C8")
 
 print mensaje
 #with open("encsgn_testenc.txt", "r") as f:

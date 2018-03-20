@@ -18,19 +18,14 @@ from Crypto.Cipher import AES, PKCS1_OAEP
 from  Crypto.Util import Padding
 from Crypto.Signature import pkcs1_15
 
-<<<<<<< HEAD
+
 
 # Constantes que definen ciertas longitudes (en bytes)
 
 IVLEN = 16 # Longitud del IV
 RSALEN = 256 # Longitud del mensaje cifrado con RSA
 AESCLEN = 32 # Longitud de la clave de AES
-=======
-IVLEN = 16
-RSALEN = 256
-AESCLEN = 32
 
->>>>>>> 21336726b1da3ae75723bcce68fbba8fa8d675ac
 
 
 
@@ -51,7 +46,7 @@ def crear_firma(mensaje):
 	h = SHA256.new(mensaje)
 
 	# Cogemos la clave privada del fichero local y creamos el cifrador de RSA
-	clave_privada = RSA.import_key(open("clave_privada.dat", "r").read())
+	clave_privada = RSA.import_key(open("key/clave_privada.dat", "r").read())
 	cifrador = PKCS1_OAEP.new(clave_privada)
 
 	# Firmamos y devolvemos la firma
@@ -134,7 +129,7 @@ def encriptar_AES(mensaje, clave):
 
 	# Generamos el iv de manera aleatoria
 
-	iv = get_random_bytes(IVLEN)ç
+	iv = get_random_bytes(IVLEN)
 
 	# Como vamos a leer bloques de 16 bytes, necesitamos ajustar el tamanio del mensaje con pad
 
@@ -162,7 +157,7 @@ def crear_sobre(clave, ID_receptor, token):
 	print "-> Recuperando clave publica de ID {}...".format(ID_receptor)
 	clave_publica_aux = users.buscar_clave_publica(ID_receptor, token)
 
-	if clave_publica_aux == None:
+	if clave_publica_aux == None or not clave_publica_aux:
 		print "-> ERROR: No se ha encontrado clave publica para el usuario."
 		return None
 
@@ -363,7 +358,7 @@ def firmar_y_encriptar(fichero, ID_receptor, token):
 def abrir_sobre(c_clave):
  
 	# Conseguimos la clave privada del usuario y la importamos como clave de RSA
-	clave_privada = RSA.import_key(open("clave_privada.dat", "r").read())
+	clave_privada = RSA.import_key(open("key/clave_privada.dat", "r").read())
 
 	# Aplicamos RSA para descifrar la clave
 

@@ -52,10 +52,6 @@ def registro(nombre, email, alias, token):
 		with open(key_path + "clave_privada.dat", "wb") as key_file:
 			key_file.write(privateKey)
 		
-		with open("register.dat", "w") as reg_file:
-			reg_file.write(r.text)
-		reg_file.closed
-
 
 		# Las proximas lineas sirven para conseguir el ID del usuario, es necesaria una llamada auxiliar a search
 
@@ -76,6 +72,12 @@ def registro(nombre, email, alias, token):
 		print "-> \t*Nombre: {}".format(r.json()['nombre'])
 		print "-> \t*ts: {}".format(r.json()['ts'])
 		print "-> \t*UserID: {}".format(currentID)
+
+		# Se guardan estos credenciales en register.dat para que sean accesibles para el usuario
+		with open("register.dat", "w") as reg_file:
+			string = "Este archivo contiene los datos del registro del ultimo usuario:\nNombre: {}\nEmail: {}\nAlias: {}\nUserID: {}".format(r.json()['nombre'], email, alias, currentID)
+			reg_file.write(string)
+	
 	else :
 		codigos_error(r.json()['error_code'])
 		print "-> ERROR: El usuario no se ha podido registrar."

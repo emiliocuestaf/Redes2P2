@@ -83,7 +83,7 @@ def cifrar_y_subir_fichero(fichero, ID_receptor, token):
 	if os.path.exists(direc) == False:
 		os.mkdir(direc)
 
-	file_path = "./files/signed_and_encrypted/{}".format(file_name)
+	file_path = "./files/signed_and_encrypted/{}_aux".format(file_name)
 
 
 	with open(file_path, "w") as f:

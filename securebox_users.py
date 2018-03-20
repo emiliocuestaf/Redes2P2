@@ -1,5 +1,8 @@
 from Crypto.PublicKey import RSA
 import requests
+import os
+
+key_path = "./key/"
 
 def codigos_error(error):
 	if error == "TOK1":
@@ -42,12 +45,13 @@ def registro(nombre, email, alias, token):
 
 	#Guardamos la clave privada en un fichero solo si la respuesta tiene un codigo 200
 	if r.status_code == 200 :
-		with open("clave_privada.dat", "wb") as key_file:
+
+		if os.path.exists(key_path) == False:
+			os.mkdir(key_path)
+
+		with open(key_path + "clave_privada.dat", "wb") as key_file:
 			key_file.write(privateKey)
-		key_file.closed
-		with open("clave_publica.dat", "wb") as pukey_file:
-			pukey_file.write(publicKey)
-		pukey_file.closed
+		
 		with open("register.dat", "w") as reg_file:
 			reg_file.write(r.text)
 		reg_file.closed

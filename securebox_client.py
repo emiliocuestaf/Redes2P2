@@ -15,16 +15,18 @@ import securebox_files as files
 import securebox_crypto as crypto
 import securebox_users as users
 
+conf_path = "./conf/authorization.dat"
+
 
 #######
-# FUNCION: char processRequestchar request
-# ARGS_IN: char request - peticin de entrada (termina en \r\n)
-# DESCRIPCION: Procesa la peticin de entrada, y blah, blah...
-# ARGS_OUT: char  - devuelve un puntero senalado el verbo de la peticion recibida
+# FUNCION: read_dictionary()
+# ARGS_IN: None
+# DESCRIPCION: lee el fichero presente en conf_path (definido arriba) en un fo
+# ARGS_OUT: devuelve un diccionario con los campos token y NIA
 #######
 def read_dictionary():
 	d = {}
-	with open("authorization.dat") as f:
+	with open(conf_path) as f:
 	    for line in f:
 	       (key, val) = line.split()
 	       d[key] = val

@@ -52,6 +52,13 @@ def registro(nombre, email, alias, token):
 			reg_file.write(r.text)
 		reg_file.closed
 
+
+		# Las proximas lineas sirven para conseguir el ID del usuario, es necesaria una llamada auxiliar a search
+
+		r = buscar_identidad_aux(data_search=email, token= token)
+
+		print r.json().
+
 		print "-> OK\nEstos son sus credenciales:"
 		print "-> \t*Nombre: {}".format(r.json()['nombre'])
 		print "-> \t*ts: {}".format(r.json()['ts'])
@@ -79,6 +86,19 @@ def buscar_clave_publica(userID, token):
 		print "-> ERROR. No se ha encontrado la clave publica del usuario {}".format(userID)
 		return None
 
+
+
+def buscar_identidad_aux(data_search, token):
+	
+	#Escritura de la peticion de clave publica
+	url = 'https://vega.ii.uam.es:8080/api/users/search'
+	headers = {'Authorization': "Bearer " + token}
+	args = {'data_search': data_search}
+
+	r = requests.post(url, headers=headers, json=args)
+
+	return r
+
 #casi equivalente a buscar clave publica
 #return, en formato json, los siguientes campos:
 #	userID
@@ -91,12 +111,11 @@ def buscar_identidad(data_search, token):
 
 	print "-> Buscando usuario {} en el servidor...".format(data_search)
 
-	#Escritura de la peticion de clave publica
 	url = 'https://vega.ii.uam.es:8080/api/users/search'
 	headers = {'Authorization': "Bearer " + token}
 	args = {'data_search': data_search}
 
-	r = requests.post(url, headers=headers, json=args)
+	r = buscar_identidad_aux(data_search=data_search, token= token)
 
 	if r.status_code == 200:
 		print "-> OK"
@@ -130,3 +149,4 @@ def borrar_identidad(userID, token):
 		codigos_error(r.json()['error_code'])
 		print "-> ERROR: no se ha podido borrar el usuario"
 	return	
+

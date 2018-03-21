@@ -1,2 +1,0 @@
-* VERIFY (digest y tal) en AES??
-* ERRORES HTTP

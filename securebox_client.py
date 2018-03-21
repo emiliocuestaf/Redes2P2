@@ -11,6 +11,7 @@
 import argparse
 import sys
 import ast
+sys.path.insert(0, './src')
 import securebox_files as files 
 import securebox_crypto as crypto
 import securebox_users as users

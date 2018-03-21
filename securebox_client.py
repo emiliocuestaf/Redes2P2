@@ -11,25 +11,29 @@
 import argparse
 import sys
 import ast
-sys.path.insert(0, './src')
 import securebox_files as files 
 import securebox_crypto as crypto
 import securebox_users as users
 
+# Guardamos las direcciones que nos interesan 
+sys.path.insert(0, './src')
 conf_path = "./conf/authorization.dat"
 
 
 #######
 # FUNCION: read_dictionary()
 # ARGS_IN: None
-# DESCRIPCION: lee el fichero presente en conf_path (definido arriba) en un fo
+# DESCRIPCION: lee el fichero presente en conf_path (definido arriba) en un formato de diccionario
+#				para tener la informacion mas accesible
 # ARGS_OUT: devuelve un diccionario con los campos token y NIA
 #######
 def read_dictionary():
 	d = {}
 
+	# Abrimos el fichero de configuracion, controlando excepciones
 	try:
 		with open(conf_path) as f:
+			# Guardamos todos los valores que haya en el fichero
 		    for line in f:
 		       (key, val) = line.split()
 		       d[key] = val
@@ -39,15 +43,22 @@ def read_dictionary():
 		print "-> Dicho fichero debe corresponderse con la siguiente ruta: {}".format(conf_path)
 		return None
 
+	# Devolvemos el diccionario
 	return d
 
+#######
+# FUNCION: main()
+# ARGS_IN: None
+# DESCRIPCION: funcion principal, encargada de parsear el mensaje que llegue por argumentos y llamar a las funciones correspondientes
+#######
 
 def main():
+
+	# Guardamos todas las posibles opciones que pueden llegar por argumentos, con el numero de argumentos que esperan y su descripcion
 
 	parser = argparse.ArgumentParser(description='Servidor de transferencia y codificacion de archivos interactivo.')
 
 	# Gestion de usuarios e identidades
-	#TODO: WORK WITHOUT ALIAS
 	parser.add_argument('--create_id', nargs=3, help='Registro de un usuario', metavar=('nombre', 'email', 'alias'))
 
 	parser.add_argument('--search_id', nargs=1, help='Busqueda de un usuario', metavar=('cadena'))
@@ -74,6 +85,8 @@ def main():
 
 	parser.add_argument('--enc_sign', nargs=1, help='Encripta y firma un fichero', metavar=('fichero'))
 
+
+	# Parseamos los argumentos
 	args = parser.parse_args()
 
 	#Control para ver que solo se ha pasado el numero de comandos necesarios
@@ -82,11 +95,13 @@ def main():
 		if(item != None and item!=False):
 			count += 1
 
-	#TODO: control de errores in here
+	# Creamos el diccionario de NIA y token
 	d = read_dictionary()
 
 	if d == None:
 		return 
+
+	# Guardamos el token
 
 	if 'token' in d:
   		token = d['token']
@@ -95,6 +110,7 @@ def main():
   		print "-> ERROR: El campo token es ESTRICTEMENTE NECESARIO"
   		return
 	
+	# Vamos comprobando los posibles argumentos que nos han podido pasar, comprobando en cada caso que la peticion esta bien formada
 
 	if args.create_id:
 		if count != 1:
@@ -174,5 +190,6 @@ def main():
 
 	return
 
+# Hacemos que python interprete esta funcion como main y no como libreria
 if __name__ == '__main__':
    main()

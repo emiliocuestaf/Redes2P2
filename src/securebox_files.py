@@ -75,28 +75,17 @@ def cifrar_y_subir_fichero(fichero, ID_receptor, token):
 		print "-> ERROR: se aborta la subida del fichero."
 		return
 	
-	# Nos aseguramos que los directorios que necesitamos existen, y si no,los creamos
-	direc = "./files"
-	if os.path.exists(direc) == False:
-		os.mkdir(direc)
-	direc = "./files/signed_and_encrypted"
-	if os.path.exists(direc) == False:
-		os.mkdir(direc)
-
-	file_path = "./files/signed_and_encrypted/{}_aux".format(file_name)
-
-
-	with open(file_path, "w") as f:
+	with open(file_name, "w") as f:
 		f.write(mensaje_encriptado)
 
 	print "-> Subiendo fichero " + fichero	
 
-	file_id = subir_fichero(file_path, token) 
+	file_id = subir_fichero(file_name, token) 
 	if file_id == None:
-		os.remove(file_path)
+		os.remove(file_name)
 		print "-> ERROR: EL fichero no se ha podido subir correctamente"
 		return
-	os.remove(file_path)
+	os.remove(file_name)
 	print "-> OK"
 	print "-> Subida realizada satisfactoriamente, ID del fichero " + file_id
 	return 

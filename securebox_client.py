@@ -10,13 +10,13 @@
 
 import argparse
 import sys
+sys.path.insert(0, './src')
 import ast
 import securebox_files as files 
 import securebox_crypto as crypto
 import securebox_users as users
 
 # Guardamos las direcciones que nos interesan 
-sys.path.insert(0, './src')
 conf_path = "./conf/authorization.dat"
 
 
